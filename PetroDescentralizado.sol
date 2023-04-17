@@ -54,10 +54,6 @@ contract PetroDescentralizado is ERC20, ERC20Permit, ERC20Votes, ERC20Snapshot{
         return (amount);
     }
 
-    function ClaimUnclaimed() public {
-
-    }
-
     function MyPendingDistribution(address target) public view returns (uint){
         require(_getCurrentSnapshotId() - indexmining[target] <= 100, "You have to many pending distributions");
         uint indexdifference = _getCurrentSnapshotId() - indexmining[target];
