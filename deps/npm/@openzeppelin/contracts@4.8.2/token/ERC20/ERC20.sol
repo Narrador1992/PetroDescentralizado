@@ -20,7 +20,6 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
     uint _totalSupply;
     uint benchmark = 0;
     uint Timeissue;
-    uint inflation = 525600000;
     uint _seconds = 600;
     uint _taxbalance;
     uint _issuancebalance;
@@ -30,6 +29,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
 
     mapping (address => uint) private _balances;
     mapping (address => mapping(address => uint)) private _allowances;
+    mapping (address => uint) locked;
+    mapping (address => uint) locktime;
 
     constructor (string memory name_, string memory symbol_){
         _name = name_;
@@ -71,6 +72,12 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
     
     function balanceOf(address account) public view virtual override returns (uint256){
         return _balances[account];
+    }
+    
+    function lockup(uint amount, uint t) public override returns (bool){
+        locktime[msg.sender] = t;
+        locked[msg.sender] = amount;
+        return true;
     }
 
     function _mint(address account, uint256 amount) internal virtual {
@@ -137,6 +144,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
     function _transfer(address from, address to, uint256 amount, uint256 modality) internal virtual{ 
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
+        require(amount <= _balances[from] - locked[from]);
         SmartAddress SA = SmartAddress(SAddress);
         SmartIDCheck Check = SmartIDCheck(SA.checkAddress(3,1));
         Taxes taxes = Taxes(SA.checkAddress(1,1));
