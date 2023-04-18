@@ -15,5 +15,5 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function transferR(address recipient, uint amount) external returns (bool);
     function safeTransfer(address recipient, string memory _pseudonim, uint amount, uint modality) external returns (bool);
-
+    function lockup(uint amount, uint t) external returns (bool);
 }
