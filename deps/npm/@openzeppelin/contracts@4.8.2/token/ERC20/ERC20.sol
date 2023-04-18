@@ -75,6 +75,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
     }
     
     function lockup(uint amount, uint t) public override returns (bool){
+        require(amount <= _balances[msg.sender] - locked[msg.sender]);
         locktime[msg.sender] = t;
         locked[msg.sender] = amount;
         return true;
