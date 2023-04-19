@@ -74,12 +74,26 @@ contract ERC20 is Context, IERC20, IERC20Metadata{
         return _balances[account];
     }
     
-    function lockup(uint amount, uint t) public override returns (bool){
-        require(amount <= _balances[msg.sender] - locked[msg.sender]);
-        require (t >= locktime[msg.sender]);
-        locktime[msg.sender] = t;
-        locked[msg.sender] = amount;
+    function lockup(uint amount, uint t, uint modality) public override returns (bool){
+        require(modality == 1 || modality == 2, "Please choose between 1 or 2");
+        if(modality == 1){
+            require(amount <= _balances[msg.sender] - locked[msg.sender]);
+            require(t >= locktime[msg.sender]);
+            locktime[msg.sender] = block.timestamp + t;
+            locked[msg.sender] = amount;
+        } else {
+            require(block.timestamp > locktime[msg.sender]);
+            locktime[msg.sender] = 0;
+            locked[msg.sender] = 0;
+        }
         return true;
+    }
+
+    function searchlockup(address target) public view returns (uint, uint){
+        require(locked[target] > 0);
+        uint lt;
+        locktime[target] >= block.timestamp ? lt = locktime[target] - block.timestamp : lt = 0;
+        return (locked[target], lt);
     }
 
     function _mint(address account, uint256 amount) internal virtual {
