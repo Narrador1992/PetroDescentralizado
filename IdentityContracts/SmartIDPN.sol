@@ -11,6 +11,7 @@ contract SmartID{
     address public Owner;
     address public recovery;
     address _referral;
+    address _SAddress;
     
     uint VacationTime;
     uint Time;
@@ -30,8 +31,6 @@ contract SmartID{
     bool whitelistActivate;
     bool Vacation;
     bool allchecked;
-
-    SmartAddress SA = SmartAddress(address(0));
 
     constructor(string memory _pseudonim, string memory _birthplace, uint _birthday_ddmmaaaa, string memory _occupation, uint _experience, address _recovery){ //checked
         require(msg.sender != _recovery);
@@ -59,9 +58,12 @@ contract SmartID{
         _;
     }
 
-    //Identity Functions
+    function SetAddress(address SAddress) public OnlyOwner{
+        require(_SAddress == address(0));
+        _SAddress = SAddress;
+    }
 
-    function uploadCoreHash(uint InternalIndex, bytes32 File) public OnlyOwner{ //Checked
+    function uploadCoreHash(uint InternalIndex, bytes32 File) public OnlyOwner{ 
         require(InternalIndex >= 1);
         checked[InternalIndex + 5] = false; 
         if(InternalIndex <= 2){
@@ -70,7 +72,7 @@ contract SmartID{
         Documents[InternalIndex] = File;
     }
 
-    function changeData(uint InternalIndex, uint InternalBenchmark, string memory stringdata, uint numberdata) public OnlyOwner{ // checked
+    function changeData(uint InternalIndex, uint InternalBenchmark, string memory stringdata, uint numberdata) public OnlyOwner{ 
         require(InternalBenchmark == 1 || InternalBenchmark == 2);
         if(InternalBenchmark == 1){
             require(InternalIndex == 2 || InternalIndex == 3);
@@ -85,7 +87,7 @@ contract SmartID{
         }
     }
 
-    function search(uint InternalIndex, uint InternalBenchmark) public view returns (string memory, uint, bytes32){ //checked
+    function search(uint InternalIndex, uint InternalBenchmark) public view returns (string memory, uint, bytes32){ 
         require(InternalBenchmark <= 3 && InternalBenchmark >= 1);
         if(InternalBenchmark == 1){
             require(InternalIndex <= 3 && InternalIndex >= 1);
@@ -115,10 +117,9 @@ contract SmartID{
         }
     }
 
-    //Approval Functions
-
     function _checked(uint InternalIndex) public {
-        SmartIDFactory SIF = SmartIDFactory(address(0));
+        SmartAddress SA = SmartAddress(_SAddress);
+        SmartIDFactory SIF = SmartIDFactory(SA.checkAddress(2,1));
         require(SIF.isComplianceManager(msg.sender) == true);
         require(checked[InternalIndex] == false);
         require(InternalIndex <= 7 && InternalIndex >= 1);
@@ -135,9 +136,7 @@ contract SmartID{
         }
     }
 
-    //Change SmartID Ownership
-
-    function changeOwnership(address newaccount, uint InternalIndex) public{ //checked
+    function changeOwnership(address newaccount, uint InternalIndex) public{ 
         require (msg.sender == Owner || msg.sender == recovery);
         require (InternalIndex == 1 || InternalIndex == 2);
         if(Confirmation[Owner][InternalIndex] == false && Confirmation[recovery][InternalIndex] == false){
@@ -152,16 +151,18 @@ contract SmartID{
             Confirmation[recovery][InternalIndex] = false;
             candidate[InternalIndex] = address(0);
             InternalIndex == 1 ? Owner = newaccount : recovery = newaccount;
-            SmartIDCheck Check = SmartIDCheck(address(0));
             if (InternalIndex == 1){
-            Check.ChangeSID(address(this), newaccount);
+                SmartAddress SA = SmartAddress(_SAddress);
+                SmartIDCheck Check = SmartIDCheck(SA.checkAddress(3,1));
+                Check.ChangeSID(address(this), newaccount);
             }
         }
     }
 
     function setBackUp(address _ForcedAddress) public OnlyOwner{
         require(block.timestamp > timeBackUp + 90 days);
-        SmartIDCheck Check = SmartIDCheck(address(0));
+        SmartAddress SA = SmartAddress(_SAddress);
+        SmartIDCheck Check = SmartIDCheck(SA.checkAddress(3,1));
         require(Check.SIDstatus(_ForcedAddress) == true);
         SmartID SIDx = SmartID(_ForcedAddress);
         ForcedAddress[1] = SIDx.checkAddresses(1);
@@ -174,42 +175,41 @@ contract SmartID{
     }
 
     function forcedChange() public{
+        SmartAddress SA = SmartAddress(_SAddress);
         require(msg.sender == SA.checkAddress(0,1));
-        SmartIDCheck Check = SmartIDCheck(address(0));
+        SmartIDCheck Check = SmartIDCheck(SA.checkAddress(3,1));
         Owner = ForcedAddress[1];
         Check.ChangeSID(address(this), ForcedAddress[1]);
         recovery = ForcedAddress[2];
     }
 
-    //Financial Functions
-
-    function WhitelistActivate(bool status) public OnlyRecovery{ //checked
+    function WhitelistActivate(bool status) public OnlyRecovery{ 
         require (status != whitelistActivate);
         whitelistActivate = status;
     }
 
-    function _isWhitelistActivate() public view returns (bool){ //checked
+    function _isWhitelistActivate() public view returns (bool){ 
         return whitelistActivate;
     }
 
-    function AddToWhitelist(address target, bool status) public OnlyRecovery{ //checked
+    function AddToWhitelist(address target, bool status) public OnlyRecovery{ 
         require (status != Whitelist[target]);
         Whitelist[target] = status;
     }
 
-    function _isWhitelisted(address target) public view returns (bool){ //checked
+    function _isWhitelisted(address target) public view returns (bool){ 
         return Whitelist[target];
     }
 
-    function _FreezeTransfer(address target, bool status) public OnlyRecovery{ //checked
+    function _FreezeTransfer(address target, bool status) public OnlyRecovery{ 
         FreezeTransfer[target] = status;
     }
 
-    function _isFrozen(address target) public view returns (bool){ //checked
+    function _isFrozen(address target) public view returns (bool){ 
         return FreezeTransfer[target];
     }
 
-    function _Vacation(bool status) public OnlyRecovery{ //checked
+    function _Vacation(bool status) public OnlyRecovery{ 
         require (status != Vacation);
         if (status == true){
             Vacation = status;
@@ -220,23 +220,19 @@ contract SmartID{
         }
     }
 
-    function _isVacation() public view returns (bool){ //checked
+    function _isVacation() public view returns (bool){ 
         return Vacation;
     }
 
-    //Marketing Functions 
-
-    function Marketed(address account) public OnlyOwner{ //checked
+    function Marketed(address account) public OnlyOwner{ 
         _referral = account;
     }
 
-    function _isClient() public view returns(address){ //checked
+    function _isClient() public view returns(address){ 
         return _referral;
     }
 
-    //Civil Law Compliance
-
-    function protect(address address1, address address2) public OnlyRecovery{ //checked
+    function protect(address address1, address address2) public OnlyRecovery{ 
         Time = block.timestamp + 365 days;
         Protector[1] = address1;
         Protector[2] = address2;
