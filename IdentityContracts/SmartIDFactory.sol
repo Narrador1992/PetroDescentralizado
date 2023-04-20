@@ -11,10 +11,15 @@ contract SmartIDFactory{
     mapping(bytes32 => bool) repeateable;
     mapping(address => bool) compliancemanager;
 
-    SmartAddress SA = SmartAddress(address(0));
+    address _SAddress;
+
+    constructor(address SAddress){
+        _SAddress = SAddress;
+    }
 
     function createSmartIDPN(string memory _pseudonim, string memory _birthplace, uint _birthday, string memory _occupation, uint _experience, address _recovery) public{
-        SmartIDCheck Check = SmartIDCheck(address(0));
+        SmartAddress SA = SmartAddress(_SAddress);
+        SmartIDCheck Check = SmartIDCheck(SA.checkAddress(3,1));
         require(repeateable[keccak256(abi.encodePacked(_pseudonim))] == false, "Existing Pseudonim, please choose another one");
         require(Check.SIDaddress(msg.sender) == address(0));
         SmartID SID = new SmartID(_pseudonim, _birthplace, _birthday, _occupation, _experience, _recovery);
@@ -25,6 +30,7 @@ contract SmartIDFactory{
     }
 
     function ComplianceManager(address target, bool status) public{
+        SmartAddress SA = SmartAddress(_SAddress);
         require(msg.sender == SA.checkAddress(0,1));
         compliancemanager[target] = status;
     }
